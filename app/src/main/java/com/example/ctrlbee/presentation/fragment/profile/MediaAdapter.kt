@@ -11,6 +11,11 @@ import com.example.ctrlbee.domain.model.MediaItem
 
 class MediaAdapter : ListAdapter<MediaItem, MediaAdapter.MediaViewHolder>(DIFF_CALLBACK) {
 
+    private var onItemClickListener: ((MediaItem) -> Unit)? = null
+    fun setOnItemClickListener(listener: (MediaItem) -> Unit) {
+        this.onItemClickListener = listener
+    }
+
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -22,11 +27,12 @@ class MediaAdapter : ListAdapter<MediaItem, MediaAdapter.MediaViewHolder>(DIFF_C
         return MediaViewHolder(itemBinding)
     }
 
-    override fun onBindViewHolder(
-        holder: MediaViewHolder,
-        position: Int
-    ) {
-        holder.bind(getItem(position))
+    override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
+        val currentItem = getItem(position)
+        holder.bind(currentItem)
+        holder.itemView.setOnClickListener {
+            onItemClickListener?.invoke(currentItem)
+        }
     }
 
     companion object {

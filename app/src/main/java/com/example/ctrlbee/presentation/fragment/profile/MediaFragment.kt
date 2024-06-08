@@ -1,50 +1,77 @@
 package com.example.ctrlbee.presentation.fragment.profile
 
 import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.ctrlbee.R
 import com.example.ctrlbee.databinding.FragmentProfileMediaBinding
 import com.example.ctrlbee.domain.model.MediaItem
-import dagger.hilt.android.AndroidEntryPoint
+import androidx.fragment.app.FragmentManager
+import by.kirich1409.viewbindingdelegate.fragmentViewBinding
 
-@AndroidEntryPoint
 class MediaFragment : Fragment(R.layout.fragment_profile_media) {
 
-    private val viewBinding: FragmentProfileMediaBinding by viewBinding()
+    private var _binding: FragmentProfileMediaBinding? = null
+    private val binding get() = _binding
 
-    private val mediaAdapter by lazy(LazyThreadSafetyMode.NONE) {
-        MediaAdapter()
+    private val mediaAdapter by lazy { MediaAdapter() }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _binding = FragmentProfileMediaBinding.inflate(inflater, container, false)
+        return binding?.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        initActions()
+        setupRecyclerView()
     }
 
-    private fun initActions() = with(viewBinding) {
-        mediaRecycler.adapter = mediaAdapter
-        mediaRecycler.layoutManager = GridLayoutManager(context, 3)
+    private fun setupRecyclerView() {
 
-//        val testList = listOf(
-//            MediaItem("https://images.unsplash.com/photo-1554080353-a576cf803bda?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "1"),
-//            MediaItem("https://images.unsplash.com/photo-1508921912186-1d1a45ebb3c1?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "2"),
-//            MediaItem("https://images.unsplash.com/photo-1531804055935-76f44d7c3621?q=80&w=1888&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "3"),
-//            MediaItem("https://images.unsplash.com/photo-1566275529824-cca6d008f3da?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "4"),
-//            MediaItem("https://images.unsplash.com/photo-1495231916356-a86217efff12?q=80&w=1936&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "5")
-//        )
+        binding?.recyclerView?.layoutManager = GridLayoutManager(requireContext(), 3)
+        binding?.recyclerView?.adapter = mediaAdapter
 
+        // Если у вас есть заранее подготовленные медиа-элементы
+        val mediaItems = listOf(
+            MediaItem("https://st.depositphotos.com/2935381/4189/i/450/depositphotos_41897159-stock-photo-example-concept.jpg", "Description 1"),
+            MediaItem("https://st.depositphotos.com/2935381/4189/i/450/depositphotos_41897159-stock-photo-example-concept.jpg", "Description 2"),
+            MediaItem("https://st.depositphotos.com/2935381/4189/i/450/depositphotos_41897159-stock-photo-example-concept.jpg", "Description 2"),
+            MediaItem("https://img.freepik.com/premium-photo/wooden-cubes-with-word-example_284815-518.jpg", "Description 2")
+        )
 
-//        mediaAdapter.submitList(testList)
+        mediaAdapter.submitList(mediaItems)
+
+        mediaAdapter.setOnItemClickListener { mediaItem ->
+            Log.d("MediaFragment", "onItemClick: mediaItem.image = ${mediaItem.image}")
+            requireActivity().supportFragmentManager?.let {
+                Log.d("MediaFragment", "showPhotoViewerDialog() called")
+                showPhotoViewerDialog(it, mediaItem.image)
+            }
+        }
     }
-//    private fun addMediaItem(mediaItem: MediaItem) {
-//        // Добавление медиафайла в список
-//        // После добавления уведомление адаптера о изменениях
-//        mediaAdapter.add(MediaItem)
-//        mediaAdapter.notifyDataSetChanged()
-//    }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+
+    private fun showPhotoViewerDialog(fragmentManager: FragmentManager, imageUrl: String) {
+        Log.d("MediaFragment", "showPhotoViewerDialog() called with imageUrl: $imageUrl")
+        val fragment = PhotoViewerDialogFragment.newInstance(imageUrl)
+        fragment.show(fragmentManager, "photo_viewer_dialog")
+    }
+
+    fun addMediaItem(mediaItem: MediaItem) {
+        val currentList = mediaAdapter.currentList.toMutableList()
+        currentList.add(mediaItem)
+        mediaAdapter.submitList(currentList)
+    }
 }
