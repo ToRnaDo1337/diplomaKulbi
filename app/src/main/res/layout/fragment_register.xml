@@ -49,15 +49,7 @@
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusBottomEnd="12dp"
             app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusTopStart="12dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/field_name"
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:hint="Full name"
-                android:inputType="textEmailAddress"/>
-        </com.google.android.material.textfield.TextInputLayout>
+            app:boxCornerRadiusTopStart="12dp"/>
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"

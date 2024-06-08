@@ -32,11 +32,10 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
             }
 
             buttonCreateAccount.setOnClickListener {
-                val username = fieldName.text.toString()
                 val password = fieldPassword.text.toString()
                 val email = fieldEmail.text.toString()
 
-                if (username.isNotEmpty() && password.isNotEmpty() && email.isNotEmpty()) {
+                if (password.isNotEmpty() && email.isNotEmpty()) {
                     val bundle =
                         Bundle().apply {
                             putString(REG_USER_EMAIL, email)
