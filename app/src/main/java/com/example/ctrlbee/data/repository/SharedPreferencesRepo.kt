@@ -15,6 +15,7 @@ class SharedPreferencesRepo @Inject constructor(
         const val KEY_USER_ACCESS_TOKEN: String = "user_access_token"
         const val FIRST_LAUNCH_INSTRUCTION: String = "first_launch_instruction"
         const val NO_VALUE = ""
+        const val BIO_TEXT = ""
     }
 
     private val prefs = context.getSharedPreferences(MY_PREFS_NAME, Context.MODE_PRIVATE)
@@ -58,4 +59,8 @@ class SharedPreferencesRepo @Inject constructor(
     fun clearAll() {
         prefs.edit().clear().apply()
     }
+    fun setUserBio(bio:String){
+        prefs.edit().putString(BIO_TEXT,bio).apply()
+    }
+    fun getUserBio(): String = prefs.getString(BIO_TEXT, NO_VALUE) ?: NO_VALUE
 }

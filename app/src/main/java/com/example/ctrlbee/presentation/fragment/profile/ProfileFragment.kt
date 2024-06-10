@@ -17,6 +17,8 @@ import com.bumptech.glide.Glide
 import com.example.ctrlbee.R
 import android.net.Uri
 import android.os.Environment
+import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
 import com.example.ctrlbee.data.repository.SharedPreferencesRepo
 import com.example.ctrlbee.databinding.FragmentProfileBinding
 import com.example.ctrlbee.domain.model.MediaItem
@@ -69,6 +71,16 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                 openCamera()
             } else {
                 requestPermissions(arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
+            }
+        }
+        bioText.setText(sharedPreferencesRepo.getUserBio())
+        bioText.setOnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE || event?.keyCode == KeyEvent.KEYCODE_ENTER) {
+                sharedPreferencesRepo.setUserBio(bioText.text.toString())
+                bioText.clearFocus()
+                true
+            } else {
+                false
             }
         }
     }

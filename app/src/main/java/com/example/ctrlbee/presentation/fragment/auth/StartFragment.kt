@@ -59,7 +59,7 @@ class StartFragment : Fragment(R.layout.fragment_start) {
     private fun handleLoginState(state: LoginState) {
         when (state) {
             is LoginState.Failed -> {
-                Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Incorrect login or password", Toast.LENGTH_LONG).show()
             }
             is LoginState.Loading -> {}
             is LoginState.Success -> {
