@@ -2,6 +2,7 @@ package com.example.ctrlbee.data.repository
 
 import android.util.Log
 import com.example.ctrlbee.data.remote.ProfileApiService
+import com.example.ctrlbee.domain.model.posts.PostResponse
 import com.example.ctrlbee.domain.model.profile.ProfileResponse
 import com.example.ctrlbee.domain.repository.ProfileRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -58,6 +59,14 @@ class ProfileRepositoryImpl
     override suspend fun getProfile(token: String): Pair<ProfileResponse?, String?> {
         return try {
             val response = profileService.getProfile(token = "Bearer $token")
+            Pair(response, null)
+        } catch (ex: Exception) {
+            Pair(null, ex.message)
+        }
+    }
+    override suspend fun getPosts(token: String): Pair<List<PostResponse>?, String?> {
+        return try {
+            val response = profileService.getPosts("Bearer $token")
             Pair(response, null)
         } catch (ex: Exception) {
             Pair(null, ex.message)

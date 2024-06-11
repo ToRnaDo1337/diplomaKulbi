@@ -1,5 +1,6 @@
 package com.example.ctrlbee.data.remote
 
+import com.example.ctrlbee.domain.model.posts.PostResponse
 import com.example.ctrlbee.domain.model.profile.ProfileResponse
 import com.example.ctrlbee.domain.model.profile.UpdateStatusRequest
 import okhttp3.MultipartBody
@@ -33,5 +34,7 @@ interface ProfileApiService {
 
     @GET("/api/profiles")
     suspend fun getProfile(@Header("Authorization") token: String): ProfileResponse
+    @GET("/api/posts")
+    suspend fun getPosts(@Header("Authorization") token: String): List<PostResponse>
 }
 

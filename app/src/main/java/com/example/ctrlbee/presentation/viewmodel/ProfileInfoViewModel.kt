@@ -6,10 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ctrlbee.data.repository.SharedPreferencesRepo
+import com.example.ctrlbee.domain.model.posts.PostResponse
 import com.example.ctrlbee.domain.model.profile.ProfileResponse
 import com.example.ctrlbee.domain.repository.ProfileRepository
 import com.example.ctrlbee.presentation.state.UpdateProfileState
-import com.google.android.gms.common.api.Status
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
@@ -24,12 +24,17 @@ constructor(
 ) : ViewModel() {
     @Inject
     lateinit var sharedPreferencesRepo: SharedPreferencesRepo
+
+
     private val _profileStateLiveData = MutableLiveData<UpdateProfileState>()
     val profileStateLiveData: LiveData<UpdateProfileState> get() = _profileStateLiveData
 
 
     private val _profileDataLiveData = MutableLiveData<ProfileResponse?>()
     val profileDataLiveData: LiveData<ProfileResponse?> get() = _profileDataLiveData
+
+    private val _postsLiveData = MutableLiveData<List<PostResponse>>()
+    val postsLiveData: LiveData<List<PostResponse>> get() = _postsLiveData
 
 
     fun updateProfile(
@@ -96,6 +101,20 @@ constructor(
             } catch (ex: Exception) {
                 Log.e("ProfileInfoViewModel", "Error fetching profile: ${ex.message}")
                 _profileDataLiveData.value = null // or handle error appropriately
+            }
+        }
+    }
+    fun fetchPosts(token: String) {
+        viewModelScope.launch {
+            try {
+                val (posts, errorMessage) = profileRepo.getPosts(token)
+                if (posts != null) {
+                    _postsLiveData.value = posts
+                } else {
+                    // Handle error appropriately
+                }
+            } catch (ex: Exception) {
+                // Handle error appropriately
             }
         }
     }

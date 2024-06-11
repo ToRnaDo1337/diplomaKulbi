@@ -22,6 +22,7 @@ import android.util.Base64
 import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
+import android.widget.Toast
 import androidx.fragment.app.viewModels
 import com.example.ctrlbee.data.repository.SharedPreferencesRepo
 import com.example.ctrlbee.databinding.FragmentProfileBinding
@@ -60,6 +61,24 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         super.onViewCreated(view, savedInstanceState)
         initUserProfileData()
         initActions()
+        fetchPosts()
+        initObserver()
+    }
+    private fun initObserver() {
+        viewModel.postsLiveData.observe(viewLifecycleOwner) { posts ->
+            // Handle the posts list
+            posts.forEach { post ->
+                Log.d("POST ITEM",post.toString())
+                val mediaItem = MediaItem(post.media.toString(), "New Image")
+                addMediaItemToMediaFragment(mediaItem)
+                // For example, display post descriptions
+//                Toast.makeText(requireContext(), post.description, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        viewModel.profileStateLiveData.observe(viewLifecycleOwner) { state ->
+            // Existing state handling...
+        }
     }
 
     private fun initActions() = with(viewBinding) {
@@ -102,6 +121,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             }
         }
 
+    }
+    private fun fetchPosts() {
+        val token = sharedPreferencesRepo.getUserAccessToken()
+        viewModel.fetchPosts(token)
     }
 
     private fun initUserProfileData() = with(viewBinding) {
