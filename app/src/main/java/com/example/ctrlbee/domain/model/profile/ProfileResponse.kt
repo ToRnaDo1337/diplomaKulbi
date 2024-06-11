@@ -1,4 +1,8 @@
 package com.example.ctrlbee.domain.model.profile
 
-class ProfileResponse {
-}
+data class ProfileResponse(
+    val name: String,
+    val username: String,
+    val profileImage: String,
+    val status: String
+)

@@ -1,2 +1,3 @@
-package com.example.ctrlbee.domain.model.profile;public class UpdateStatusRequest {
-}
+package com.example.ctrlbee.domain.model.profile;
+
+data class UpdateStatusRequest(val status: String)

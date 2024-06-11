@@ -153,6 +153,7 @@ class ProfileInfoFragment : Fragment(R.layout.fragment_profile_info) {
 //                    country,
                     profileImage,
                 )
+                sharedPreferencesRepo.setUsername(username.toString())
             }
         }
 
