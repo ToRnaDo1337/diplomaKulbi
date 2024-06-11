@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -17,6 +18,7 @@ import com.bumptech.glide.Glide
 import com.example.ctrlbee.R
 import android.net.Uri
 import android.os.Environment
+import android.util.Base64
 import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
@@ -77,30 +79,58 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             if (checkCameraPermission()) {
                 openCamera()
             } else {
-                requestPermissions(arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
+                requestPermissions(
+                    arrayOf(Manifest.permission.CAMERA),
+                    CAMERA_PERMISSION_REQUEST_CODE
+                )
             }
         }
 
         viewModel.fetchProfile(sharedPreferencesRepo.getUserAccessToken())
         val username = sharedPreferencesRepo.getUsername();
         val bio = sharedPreferencesRepo.getUserBio();
-//        Log.d("PROFILE FRAGMENT","USERNMAE:"+username+"BIO:"+bio)
-        if(username!=null && bio!=null){
+
+        val profileImage = sharedPreferencesRepo.getUserImage();
+
+
+        Log.d("PROFILE FRAGMENT","USERIMAGE:"+profileImage)
+        if (username != null && bio != null) {
             usernameText.text = username;
             bioText.setText(bio);
         }
+        if (profileImage != null && profileImage != "NO_VALUE") {
+            // Decode the Base64 string to a ByteArray
+            val imageBytes = Base64.decode(profileImage, Base64.DEFAULT)
 
-        Glide.with(viewBinding.root)
-            .load("https://i.pinimg.com/236x/e6/8c/2b/e68c2bd8fa49f1b3400e2e152f2c2ef4.jpg")
-            .circleCrop()
-            .error(R.drawable.bee)
-            .into(viewBinding.profileImage)
+            // Convert the ByteArray to Bitmap
+            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+
+            // Load the Bitmap into the ImageView using Glide
+            Glide.with(viewBinding.root)
+                .load(bitmap)
+                .circleCrop()
+                .error(R.drawable.bee)
+                .into(viewBinding.profileImage)
+        }  else {
+            Glide.with(viewBinding.root)
+                .load("https://i.pinimg.com/236x/e6/8c/2b/e68c2bd8fa49f1b3400e2e152f2c2ef4.jpg")
+                .circleCrop()
+                .error(R.drawable.bee)
+                .into(viewBinding.profileImage)
+        }
+
+
+
 
         bioText.setOnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_DONE || (event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER)) {
                 sharedPreferencesRepo.setUserBio(bioText.text.toString())
-                val statusRequestBody = bioText.text.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-                viewModel.updateStatus(sharedPreferencesRepo.getUserAccessToken(), statusRequestBody)
+                val statusRequestBody =
+                    bioText.text.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                viewModel.updateStatus(
+                    sharedPreferencesRepo.getUserAccessToken(),
+                    statusRequestBody
+                )
                 bioText.clearFocus()
                 true
             } else {
@@ -109,7 +139,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         }
 
     }
-    private fun initUserProfileData()= with(viewBinding){
+
+    private fun initUserProfileData() = with(viewBinding) {
         val username = sharedPreferencesRepo.getUsername();
         val bio = sharedPreferencesRepo.getUserBio();
         usernameText.text = username;
@@ -124,7 +155,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private fun checkCameraPermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             activity?.let {
-                checkSelfPermission(it, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                checkSelfPermission(
+                    it,
+                    Manifest.permission.CAMERA
+                ) == PackageManager.PERMISSION_GRANTED
             } ?: false
         } else {
             true
@@ -173,6 +207,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     activity?.finish()
                     true
                 }
+
                 R.id.option_1 -> {
                     val fragment = ProfileInfoFragment()
                     requireActivity().supportFragmentManager.beginTransaction()
@@ -180,6 +215,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                         .commit()
                     true
                 }
+
                 else -> false
             }
         }
