@@ -28,8 +28,8 @@ class RoomInfoAdapter(private val room: RoomUno) : RecyclerView.Adapter<RoomInfo
     class RoomsViewHolder(item: View) : RecyclerView.ViewHolder(item) {
         val binding = ItemRoomMemberBinding.bind(item)
         fun bind(member: RoomMember) = with(binding) {
-            memberName.text = member.username
-            Glide.with(memberAvatar.context).load(member.profileImage).into(memberAvatar)
+            usernameText.text = member.username
+            Glide.with(profileImage.context).load(member.profileImage).into(profileImage)
         }
     }
 }
