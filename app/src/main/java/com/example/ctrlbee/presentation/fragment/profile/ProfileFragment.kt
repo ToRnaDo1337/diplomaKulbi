@@ -58,6 +58,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initUserProfileData()
         initActions()
     }
 
@@ -66,10 +67,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         TabLayoutMediator(profileTabs, profilePager) { tab, position ->
             tab.text = tabTitles[position]
         }.attach()
-
-
-
-
 
         iconMenu.setOnClickListener {
             showPopupMenu(it)
@@ -84,39 +81,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     CAMERA_PERMISSION_REQUEST_CODE
                 )
             }
-        }
-
-        viewModel.fetchProfile(sharedPreferencesRepo.getUserAccessToken())
-        val username = sharedPreferencesRepo.getUsername();
-        val bio = sharedPreferencesRepo.getUserBio();
-
-        val profileImage = sharedPreferencesRepo.getUserImage();
-
-
-        Log.d("PROFILE FRAGMENT","USERIMAGE:"+profileImage)
-        if (username != null && bio != null) {
-            usernameText.text = username;
-            bioText.setText(bio);
-        }
-        if (profileImage != null && profileImage != "NO_VALUE") {
-            // Decode the Base64 string to a ByteArray
-            val imageBytes = Base64.decode(profileImage, Base64.DEFAULT)
-
-            // Convert the ByteArray to Bitmap
-            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-
-            // Load the Bitmap into the ImageView using Glide
-            Glide.with(viewBinding.root)
-                .load(bitmap)
-                .circleCrop()
-                .error(R.drawable.bee)
-                .into(viewBinding.profileImage)
-        }  else {
-            Glide.with(viewBinding.root)
-                .load("https://i.pinimg.com/236x/e6/8c/2b/e68c2bd8fa49f1b3400e2e152f2c2ef4.jpg")
-                .circleCrop()
-                .error(R.drawable.bee)
-                .into(viewBinding.profileImage)
         }
 
 
@@ -141,15 +105,45 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     private fun initUserProfileData() = with(viewBinding) {
+
+        viewModel.fetchProfile(sharedPreferencesRepo.getUserAccessToken())
         val username = sharedPreferencesRepo.getUsername();
         val bio = sharedPreferencesRepo.getUserBio();
-        usernameText.text = username;
-        bioText.setText(bio);
-        Glide.with(viewBinding.root)
-            .load("https://i.pinimg.com/236x/e6/8c/2b/e68c2bd8fa49f1b3400e2e152f2c2ef4.jpg")
-            .circleCrop()
-            .error(R.drawable.bee)
-            .into(viewBinding.profileImage)
+
+        val profileImage = sharedPreferencesRepo.getUserImage();
+
+
+//        Log.d("PROFILE FRAGMENT","USERIMAGE:"+profileImage)
+        if (username != null && bio != null) {
+            usernameText.text = username;
+            bioText.setText(bio);
+        }
+        if (profileImage != null && profileImage != "NO_VALUE") {
+            // Decode the Base64 string to a ByteArray
+            try {
+                val imageBytes = Base64.decode(profileImage, Base64.DEFAULT)
+
+                // Convert the ByteArray to Bitmap
+                val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+
+                // Load the Bitmap into the ImageView using Glide
+                Glide.with(viewBinding.root)
+                    .load(bitmap)
+                    .circleCrop()
+                    .error(R.drawable.bee)
+                    .into(viewBinding.profileImage)
+            } catch (e: Exception) {
+                e.message?.let { Log.d("PROFILE EXCEPTION", it) }
+            }
+
+        } else {
+            Glide.with(viewBinding.root)
+                .load("https://i.pinimg.com/236x/e6/8c/2b/e68c2bd8fa49f1b3400e2e152f2c2ef4.jpg")
+                .circleCrop()
+                .error(R.drawable.bee)
+                .into(viewBinding.profileImage)
+        }
+
     }
 
     private fun checkCameraPermission(): Boolean {

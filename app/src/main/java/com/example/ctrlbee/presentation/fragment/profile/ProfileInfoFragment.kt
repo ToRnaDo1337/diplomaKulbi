@@ -1,8 +1,13 @@
 package com.example.ctrlbee.presentation.fragment.profile
 
 import android.Manifest
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.READ_MEDIA_IMAGES
+import android.Manifest.permission.READ_MEDIA_VIDEO
+import android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -59,27 +64,7 @@ class ProfileInfoFragment : Fragment(R.layout.fragment_profile_info) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Dexter.withContext(requireActivity())
-            .withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-            .withListener(object : PermissionListener {
-                override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
-                    Log.i("DEBUG", "permission granted")
-                    permissionGranted = true
-                }
-                override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
-                    Log.i("DEBUG", "permission denied")
-                }
-                override fun onPermissionRationaleShouldBeShown(
-                    p0: com.karumi.dexter.listener.PermissionRequest?,
-                    p1: PermissionToken?
-                ) {
-                    p1?.continuePermissionRequest()
-                }
-            }).withErrorListener {
-                Log.i("DEBUG", "error during requesting permission")
-            }
-            .onSameThread()
-            .check()
+
 
         resultLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
@@ -111,12 +96,29 @@ class ProfileInfoFragment : Fragment(R.layout.fragment_profile_info) {
         }
     }
 
+
     override fun onViewCreated(
         view: View,
         savedInstanceState: Bundle?,
     ) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        // Register ActivityResult handler
+        val requestPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
+            // Handle permission requests results
+            // See the permission example in the Android platform samples: https://github.com/android/platform-samples
+        }
+
+// Permission request logic
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            requestPermissions.launch(arrayOf(READ_MEDIA_IMAGES, READ_MEDIA_VIDEO, READ_MEDIA_VISUAL_USER_SELECTED))
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions.launch(arrayOf(READ_MEDIA_IMAGES, READ_MEDIA_VIDEO))
+        } else {
+            requestPermissions.launch(arrayOf(READ_EXTERNAL_STORAGE))
+        }
+        permissionGranted = true
         initActions()
         initObserver()
     }
@@ -173,7 +175,17 @@ class ProfileInfoFragment : Fragment(R.layout.fragment_profile_info) {
     private fun handleState(state: UpdateProfileState) {
         when (state) {
             is UpdateProfileState.Failed -> {
-                Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
+//                Log.d("PROFILE UPDATE",state.message)
+//                Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
+                sharedPreferencesRepo.apply {
+                    setUsername(username.toString())
+                    setUserImage(filePath)
+                }
+                val fragment = ProfileFragment()
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .replace(R.id.container, fragment)
+                    .addToBackStack(null)
+                    .commit()
             }
 
             is UpdateProfileState.Loading -> {}
@@ -185,15 +197,7 @@ class ProfileInfoFragment : Fragment(R.layout.fragment_profile_info) {
                         Toast.LENGTH_SHORT,
                     ).show()
 
-                    sharedPreferencesRepo.apply {
-                        setUsername(username.toString())
-                        setUserImage(filePath)
-                    }
-                    val fragment = ProfileFragment()
-                    requireActivity().supportFragmentManager.beginTransaction()
-                        .replace(R.id.container, fragment)
-                        .addToBackStack(null)
-                        .commit()
+
                 }
             }
         }
