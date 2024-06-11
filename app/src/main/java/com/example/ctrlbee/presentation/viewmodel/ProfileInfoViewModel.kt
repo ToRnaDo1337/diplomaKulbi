@@ -89,7 +89,7 @@ constructor(
                     _profileDataLiveData.value = profile
                     sharedPreferencesRepo.setUsername(profile.username)
                     sharedPreferencesRepo.setUserBio(profile.status)
-//                    sharedPreferencesRepo.setUserImage(profile.profileImage)
+                    sharedPreferencesRepo.setUserImage(profile.profileImage)
                 } else {
                     _profileDataLiveData.value = null // or handle error appropriately
                 }
