@@ -96,7 +96,7 @@ class RoomsInfoFragment : Fragment(R.layout.fragment_rooms_info) {
     private fun initRoomInfo(room: RoomUno) {
         with(binding) {
             roomInfoRecyclerView.layoutManager = LinearLayoutManager(context)
-            roomInfoRecyclerView.adapter = RoomInfoAdapter(room)
+            roomInfoRecyclerView.adapter = RoomMemberAdapter(room.members)
             roomName.text = room.name
             roomMemberCount.text = "Members: ${room.members.size}"
         }
