@@ -17,13 +17,20 @@ import com.bumptech.glide.Glide
 import com.example.ctrlbee.R
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
+import androidx.fragment.app.viewModels
 import com.example.ctrlbee.data.repository.SharedPreferencesRepo
 import com.example.ctrlbee.databinding.FragmentProfileBinding
 import com.example.ctrlbee.domain.model.MediaItem
+import com.example.ctrlbee.domain.model.profile.ProfileResponse
+import com.example.ctrlbee.presentation.viewmodel.ProfileInfoViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -35,6 +42,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     @Inject
     lateinit var sharedPreferencesRepo: SharedPreferencesRepo
     private val viewBinding: FragmentProfileBinding by viewBinding()
+
+    private val viewModel: ProfileInfoViewModel by viewModels()
 
     private val pagerAdapter by lazy(LazyThreadSafetyMode.NONE) {
         ProfilePagerAdapter(this)
@@ -56,11 +65,9 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             tab.text = tabTitles[position]
         }.attach()
 
-        Glide.with(viewBinding.root)
-            .load("https://i.pinimg.com/236x/e6/8c/2b/e68c2bd8fa49f1b3400e2e152f2c2ef4.jpg")
-            .circleCrop()
-            .error(R.drawable.bee)
-            .into(viewBinding.profileImage)
+
+
+
 
         iconMenu.setOnClickListener {
             showPopupMenu(it)
@@ -73,16 +80,45 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                 requestPermissions(arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
             }
         }
-        bioText.setText(sharedPreferencesRepo.getUserBio())
+
+        viewModel.fetchProfile(sharedPreferencesRepo.getUserAccessToken())
+        val username = sharedPreferencesRepo.getUsername();
+        val bio = sharedPreferencesRepo.getUserBio();
+//        Log.d("PROFILE FRAGMENT","USERNMAE:"+username+"BIO:"+bio)
+        if(username!=null && bio!=null){
+            usernameText.text = username;
+            bioText.setText(bio);
+        }
+
+        Glide.with(viewBinding.root)
+            .load("https://i.pinimg.com/236x/e6/8c/2b/e68c2bd8fa49f1b3400e2e152f2c2ef4.jpg")
+            .circleCrop()
+            .error(R.drawable.bee)
+            .into(viewBinding.profileImage)
+
         bioText.setOnEditorActionListener { v, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_DONE || event?.keyCode == KeyEvent.KEYCODE_ENTER) {
+            if (actionId == EditorInfo.IME_ACTION_DONE || (event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER)) {
                 sharedPreferencesRepo.setUserBio(bioText.text.toString())
+                val statusRequestBody = bioText.text.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                viewModel.updateStatus(sharedPreferencesRepo.getUserAccessToken(), statusRequestBody)
                 bioText.clearFocus()
                 true
             } else {
                 false
             }
         }
+
+    }
+    private fun initUserProfileData()= with(viewBinding){
+        val username = sharedPreferencesRepo.getUsername();
+        val bio = sharedPreferencesRepo.getUserBio();
+        usernameText.text = username;
+        bioText.setText(bio);
+        Glide.with(viewBinding.root)
+            .load("https://i.pinimg.com/236x/e6/8c/2b/e68c2bd8fa49f1b3400e2e152f2c2ef4.jpg")
+            .circleCrop()
+            .error(R.drawable.bee)
+            .into(viewBinding.profileImage)
     }
 
     private fun checkCameraPermission(): Boolean {
