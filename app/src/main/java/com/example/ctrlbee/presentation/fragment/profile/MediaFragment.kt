@@ -33,6 +33,7 @@ class MediaFragment : Fragment(R.layout.fragment_profile_media) {
         setupRecyclerView()
     }
 
+
     private fun setupRecyclerView() {
 
         binding?.recyclerView?.layoutManager = GridLayoutManager(requireContext(), 3)

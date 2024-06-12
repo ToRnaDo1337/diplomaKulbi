@@ -2,6 +2,7 @@ package com.example.ctrlbee.data.repository
 
 import android.content.Context
 import android.util.Log
+import com.example.ctrlbee.domain.model.posts.PostResponse
 import javax.inject.Inject
 
 class SharedPreferencesRepo @Inject constructor(
@@ -17,6 +18,7 @@ class SharedPreferencesRepo @Inject constructor(
         const val FIRST_LAUNCH_INSTRUCTION: String = "first_launch_instruction"
         const val NO_VALUE = ""
         const val BIO_TEXT = "This is my bio"
+        val posts: ArrayList<PostResponse> = ArrayList()
     }
 
     private val prefs = context.getSharedPreferences(MY_PREFS_NAME, Context.MODE_PRIVATE)
@@ -68,5 +70,7 @@ class SharedPreferencesRepo @Inject constructor(
         Log.d("SharedPreferencesRepo", "Retrieved Bio: $bio")
         return bio
     }
+
+
 
 }

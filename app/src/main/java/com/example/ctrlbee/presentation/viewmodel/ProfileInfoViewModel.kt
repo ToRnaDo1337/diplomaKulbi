@@ -12,8 +12,12 @@ import com.example.ctrlbee.domain.repository.ProfileRepository
 import com.example.ctrlbee.presentation.state.UpdateProfileState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -64,6 +68,26 @@ constructor(
             }
         }
     }
+    fun addPost(token: String, description: String, mediaFile: File) {
+        val descriptionRequestBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+        val mediaRequestBody = mediaFile.asRequestBody("image/*".toMediaTypeOrNull())
+        val mediaPart = MultipartBody.Part.createFormData("media", mediaFile.name, mediaRequestBody)
+
+        viewModelScope.launch {
+            try {
+                val (result, errorMessage) = profileRepo.addPost(token, descriptionRequestBody, mediaPart)
+                if (result != null) {
+                    fetchPosts(token) // Refresh the posts after adding a new one
+                } else {
+                    // Handle error
+                }
+            } catch (ex: Exception) {
+                // Handle error
+                Log.e("ADD POST ERROR",ex.message.toString())
+            }
+        }
+    }
+
 
     fun updateStatus(token: String, status: RequestBody) {
         _profileStateLiveData.value = UpdateProfileState.Loading
@@ -108,6 +132,7 @@ constructor(
         viewModelScope.launch {
             try {
                 val (posts, errorMessage) = profileRepo.getPosts(token)
+//                Log.d("POSTS", posts.toString())
                 if (posts != null) {
                     _postsLiveData.value = posts
                 } else {

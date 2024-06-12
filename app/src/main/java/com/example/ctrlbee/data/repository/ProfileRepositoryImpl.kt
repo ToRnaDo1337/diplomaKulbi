@@ -38,6 +38,22 @@ class ProfileRepositoryImpl
             }
         }
 
+    override suspend fun addPost(
+        token: String,
+        description: RequestBody,
+        media: MultipartBody.Part
+    ): Pair<String?, String?> {
+        return try {
+            val response = profileService.addPost(
+                token = "Bearer $token",
+                description = description,
+                media = media
+            )
+            Pair(response, null)
+        } catch (ex: Exception) {
+            Pair(null, ex.message)
+        }
+    }
 
 
     override suspend fun updateStatus(token: String, status: RequestBody): Pair<String?, String?> {

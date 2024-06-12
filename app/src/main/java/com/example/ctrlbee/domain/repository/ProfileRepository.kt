@@ -13,6 +13,11 @@ interface ProfileRepository {
 //        country: RequestBody,
         profileImage: MultipartBody.Part,
     ): Pair<String?, String?>
+    suspend fun addPost(
+        token: String,
+        description: RequestBody,
+        media: MultipartBody.Part,
+    ): Pair<String?, String?>
 
     suspend fun updateStatus(
         token: String,
