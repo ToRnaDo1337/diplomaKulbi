@@ -47,7 +47,7 @@ class MediaFragment : Fragment(R.layout.fragment_profile_media) {
             MediaItem("https://img.freepik.com/premium-photo/wooden-cubes-with-word-example_284815-518.jpg", "Description 2")
         )
 
-        mediaAdapter.submitList(mediaItems)
+//        mediaAdapter.submitList(mediaItems)
 
         mediaAdapter.setOnItemClickListener { mediaItem ->
             Log.d("MediaFragment", "onItemClick: mediaItem.image = ${mediaItem.image}")
