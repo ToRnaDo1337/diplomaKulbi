@@ -18,10 +18,12 @@ import com.bumptech.glide.Glide
 import com.example.ctrlbee.R
 import android.net.Uri
 import android.os.Environment
+import android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
 import android.util.Base64
 import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
+import android.widget.Toast
 import androidx.fragment.app.viewModels
 import com.example.ctrlbee.data.repository.SharedPreferencesRepo
 import com.example.ctrlbee.databinding.FragmentProfileBinding
@@ -30,8 +32,11 @@ import com.example.ctrlbee.domain.model.profile.ProfileResponse
 import com.example.ctrlbee.presentation.viewmodel.ProfileInfoViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.FileOutputStream
@@ -56,10 +61,50 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     private val tabTitles = listOf("Media", "Statistics")
 
+    fun base64ToBitmap(base64String: String): Bitmap? {
+        return try {
+            val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+        } catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initUserProfileData()
         initActions()
+        fetchPosts()
+        initObserver()
+    }
+    private fun initObserver() {
+        viewModel.postsLiveData.observe(viewLifecycleOwner) { posts ->
+            // Handle the posts list
+
+            posts.forEach { post ->
+                Log.d("POST ITEM",post.description)
+//                val mediaItem = MediaItem(post.media, post.description)
+                val imageBitmap = base64ToBitmap(post.media);
+                if (imageBitmap != null) {
+                    val savedImageUri = saveImageToInternalStorage(imageBitmap)
+                    savedImageUri?.let { uri ->
+                        val mediaItem = MediaItem(uri.toString(), post.description)
+                        addMediaItemToMediaFragment(mediaItem)
+
+                    }
+                }
+
+//                addMediaItemToMediaFragment(mediaItem)
+                // For example, display post descriptions
+//                Toast.makeText(requireContext(), post.description, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        viewModel.profileStateLiveData.observe(viewLifecycleOwner) { state ->
+            // Existing state handling...
+        }
     }
 
     private fun initActions() = with(viewBinding) {
@@ -102,6 +147,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             }
         }
 
+    }
+    private fun fetchPosts() {
+        val token = sharedPreferencesRepo.getUserAccessToken()
+        viewModel.fetchPosts(token)
     }
 
     private fun initUserProfileData() = with(viewBinding) {
@@ -181,13 +230,28 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == CAMERA_REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as? Bitmap
-            imageBitmap?.let {
-                val savedImageUri = saveImageToInternalStorage(it)
-                savedImageUri?.let { uri ->
-                    val mediaItem = MediaItem(uri.toString(), "New Image")
-                    addMediaItemToMediaFragment(mediaItem)
+            try {
+                imageBitmap?.let {
+                    val savedImageUri = saveImageToInternalStorage(it)
+                    savedImageUri?.let { uri ->
+                        val mediaItem = MediaItem(uri.toString(), "New Image")
+                        addMediaItemToMediaFragment(mediaItem)
+
+
+                        val mediaFile = File(uri.path!!)
+                        viewModel.addPost(
+                            sharedPreferencesRepo.getUserAccessToken(),
+                            "New Image",
+                            mediaFile
+                        )
+
+
+                    }
                 }
+            }catch (e:Exception){
+                Log.e("Adding post error",e.message.toString())
             }
+
         }
     }
 

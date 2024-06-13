@@ -1,5 +1,6 @@
 package com.example.ctrlbee.data.remote
 
+import com.example.ctrlbee.domain.model.posts.PostResponse
 import com.example.ctrlbee.domain.model.profile.ProfileResponse
 import com.example.ctrlbee.domain.model.profile.UpdateStatusRequest
 import okhttp3.MultipartBody
@@ -25,6 +26,16 @@ interface ProfileApiService {
     ): String
 
     @Multipart
+    @POST("/api/posts")
+    suspend fun addPost(
+        @Header("Authorization") token: String,
+        @Part("description") description: RequestBody,
+//        @Part("dateOfBirthday") dateOfBirthday: RequestBody,
+//        @Part("country") country: RequestBody,
+        @Part media: MultipartBody.Part,
+    ): String
+
+    @Multipart
     @PUT("/api/profiles/status")
     suspend fun updateBio(
         @Header("Authorization") token: String,
@@ -33,5 +44,8 @@ interface ProfileApiService {
 
     @GET("/api/profiles")
     suspend fun getProfile(@Header("Authorization") token: String): ProfileResponse
+    @GET("/api/posts")
+    suspend fun getPosts(@Header("Authorization") token: String): List<PostResponse>
+
 }
 
